@@ -1,17 +1,10 @@
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
-
-# TODO:
-# - Mit GammaReg = True testen
-# - Accuracy und validation accuracy auch speichern
-# - Plots erstellen und history jeweils in pickle-datei speichern (damit weiter eplots erstellt werden können)
-
 import pickle
 import numpy as np
 
-from keras.layers import Input, Dense, Activation, BatchNormalization, Dropout
+from keras.layers import Input, Dense, Activation, Dropout
 
 from ginfty import TDModel, GInftlyLayer, GammaRegularizedBatchNorm, c_l2
 
@@ -22,6 +15,8 @@ n_internal_units = 24
 
 f_reg = 1e-8
 w_reg = 1e-4
+
+# Do a test for 8, 7, ... 0 active inputs
 for n_used_input_units in reversed(range(0, n_input_units + 1)):
 
     assert 0 <= n_used_input_units <= n_input_units

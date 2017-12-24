@@ -5,13 +5,13 @@ This repository contains the code for the experiments of the following paper-lik
 
 ## Summary
 
-The document descirbes a meta-layer for infinite deep neural networks. It basically wraps a few other layers in a special way that allows the neural network to decide how many sub-layers of the meta-layer should be used. Each sub-layer has its own weights and, therefore, the networks also decides how many weights hould be used. The complete training processe may be done with gradient descent based methods.
+The document descirbes a meta-layer for infinite deep neural networks. It basically wraps a few other layers in a special way that allows the neural network to decide how many sub-layers in the meta-layer should be used. Each sub-layer has its own weights and, therefore, the networks also decides how many weights hould be used. The complete training processe may be done with gradient descent based methods.
 
 Please read [doc/going_deeper.pdf](doc/going_deeper.pdf) for more details.
 
 ## Library
 
-The repository contains a small library that allows to use the described meta-layer. The library is bases on Keras (REF). The library is very minimal, therefore, not all network architectures may be created with it. A basic model (the model of the first experiment), may be created like this:
+The repository contains a small library that allows to use the described meta-layer. The library is based on [Keras](https://keras.io/). The library is very minimal and, therefore, not all network architectures may be created with it. A basic model (the model of the first experiment), may be created like this:
 
 	# Create the model
 	n_input_units = 8
@@ -58,9 +58,9 @@ You may try to test the first experiment to get a better feeling for the interfa
 
 All experiments are more detailed documented in [doc/going_deeper.pdf](doc/going_deeper.pdf).
 
-The first experiment uses 8 binary inputs and calculates the XOR-result of them. The used netwok contains only trainable weights in a `GInftyLayer`-layer. Tests are done iwth 0-8 active inputs for the XOR-calculation. Inactive inputs are not used for the XOR-calculation and just get random input values.
+The first experiment uses 8 binary inputs and calculates the XOR-result of them. The used netwok contains only trainable weights in a `GInftyLayer`-layer. Tests are done with 0-8 active inputs for the XOR-calculation. Inactive inputs are not used for the XOR-calculation and just get random input values.
 
-It can be assumed that a network with more active inputs for the XOR-computation is more complex and, therefore, requires more sub-layers in the `GInftyLayer`. Exactly this can be shown with the given experiment. `w`-value, which basically contains the amount of sub-layers is higher for more active inputs:
+It can be assumed that a network with more active inputs for the XOR-computation is more complex and, therefore, requires more sub-layers in the `GInftyLayer`-layer. Exactly this can be shown with the given experiment. The `w`-value, which basically contains the amount of sub-layers is higher for more active inputs:
 
 ![](doc/xor_weights.png)
 

@@ -13,7 +13,7 @@ from ginfty import TDModel, GInftlyLayer, GammaRegularizedBatchNorm, c_l2
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
-# Shaping things
+# Reshape the data
 num_classes = np.prod(np.unique(y_train).shape)
 print("num_classes={}".format(num_classes))
 data_shape = x_train[0].shape
@@ -32,7 +32,6 @@ assert init_cnn_count % data_shape[-1] == 0
 init_cnn_repeat_factor = init_cnn_count // data_shape[-1]
 
 # Build the model
-r_c = 1e-3
 fc_units = 256
 w_step = 5
 f_reg = 1e-8
@@ -93,8 +92,7 @@ model.init(
     loss='categorical_crossentropy',
     metrics=['categorical_accuracy']
 )
-model._model.summary()
-# plot_model(model._model, to_file='E:\\model2.png')
+# model._model.summary()
 
 # Helper function for shuffle
 def unison_shuffled_copies(a, b):
