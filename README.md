@@ -5,7 +5,7 @@ This repository contains the code for the experiments of the following paper-lik
 
 ## Summary
 
-The document descirbes a meta-layer for infinite deep neural networks. It basically wraps a few other layers in a special way that allows the neural network to decide how many sub-layers in the meta-layer should be used. Each sub-layer has its own weights and, therefore, the networks also decides how many weights hould be used. The complete training processe may be done with gradient descent based methods.
+The document descirbes a meta-layer for infinite deep neural networks. It basically wraps a few other layers in a special way that allows the neural network to decide how many sub-layers in the meta-layer should be used. Each sub-layer has its own weights and, therefore, the networks also decides how many weights should be used. The complete training processe may be done with gradient descent based methods.
 
 Please read [doc/going_deeper.pdf](doc/going_deeper.pdf) for more details.
 
