@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import numbers
 
@@ -382,7 +383,7 @@ class TDModel:
             )
 
             # Merge the two results
-            res = {**res, **res_valid}
+            res.update(res_valid)
 
         # Add the d-Weights
         depths = self.get_depths()
