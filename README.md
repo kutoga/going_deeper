@@ -5,13 +5,13 @@ This repository contains the code for the experiments of the following paper-lik
 
 ## Summary
 
-The document descirbes a meta-layer for infinite deep neural networks. It basically wraps a few other layers in a special way that allows the neural network to decide how many sub-layers in the meta-layer should be used. Each sub-layer has its own weights and, therefore, the networks also decides how many weights should be used. The complete training processe may be done with gradient descent based methods.
+The document describes a meta-layer for infinite deep neural networks. It basically wraps a few other layers in a special way that allows the neural network to decide how many sub-layers in the meta-layer should be used. Each sub-layer has its own weights, so the network also decides how many weights should be used. The complete training process may be done with gradient descent-based methods.
 
 Please read [doc/going_deeper.pdf](doc/going_deeper.pdf) for more details.
 
 ## Library
 
-The repository contains a small library that allows to use the described meta-layer. The library is based on [Keras](https://keras.io/). The library is very minimal and, therefore, not all network architectures may be created with it. A basic model (the model of the first experiment), may be created like this:
+The repository contains a small library that allows it to use the described meta-layer. The library is based on [Keras](https://keras.io/). The library is very minimal, so not all network architectures may be created with it. A basic model (the model of the first experiment), may be created like this:
 
 	# Create the model
 	n_input_units = 8
