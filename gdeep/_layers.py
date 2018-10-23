@@ -13,7 +13,7 @@ import numpy as np
 
 import numbers
 
-from ._deltaw import DeltaW_T, DeltaWBaseModule
+from ._deltaw import DeltaW_E, DeltaWBaseModule
 
 def _get_object_fields_of_type(obj, cls) -> Iterable:
     return (m for m in inspect.getmembers(obj) if (not inspect.isroutine(m[1])) and isinstance(m[1], cls))
@@ -39,7 +39,7 @@ class GDeepModule(Module):
         return _get_object_fields_of_type(self, DeltaWBaseModule)
 
     def get_regularizations(self):
-        return sum(l.get_regularizations() for l in self._get_delta_w_layers())
+        return sum(l[1].get_regularizations() for l in self._get_deeper_base_layers())
 
     def get_w_values(self, recursive=True):
         yield from ((l[0], l[1].get_w()) for l in self._get_delta_w_layers())
@@ -55,11 +55,11 @@ class GDeepLayerBase(GDeepModule):
 
     def __init__(
         self,
-        f_i_builder, f_regularization = 0.,
+        f_i_builder, f_regularization = 1e-8,
         merge=lambda delta_w_i, x, x_new: x + delta_w_i * x_new,
         h_builder=lambda: _identity,
-        w_regularization = 0., w_reguralizer_fn = lambda w: w.norm(1),
-        f_delta_w_builder = DeltaW_T,
+        w_regularization = 1e-8, w_reguralizer_fn = lambda w: w.norm(1),
+        f_delta_w_builder = DeltaW_E,
         *args, **kwargs
     ) -> None:
         super().__init__(*args, **kwargs)
@@ -84,16 +84,16 @@ class GDeepLayerBase(GDeepModule):
         self._parameter_count += 1
         self.register_parameter(name, parameter)
 
-    def _register_parameters(self, parameters):
-        def get_parameters():
+    def _register_parameters(self, *parameters):
+        def _get_parameters(parameters):
             for parameter in parameters:
                 if isinstance(parameter, Module):
-                    yield from param.parameters()
+                    yield from parameter.parameters()
                 elif iter(parameters):
-                    yield from parameters
+                    yield from map(_get_parameters, parameters)
                 else:
                     yield parameter
-        for parameter in get_parameters():
+        for parameter in _get_parameters(parameters):
             self._register_parameter(parameter)
 
     def _build_layer(self, i):
@@ -132,14 +132,17 @@ class GDeepLayerBase(GDeepModule):
             w_regularization = w_regularization()
 
         # Get the DeltaW regularization
-        reg += w_regularization * self._w_regularizer_fn(self._delta_w.weight)
+        reg += w_regularization * self._w_reguralizer_fn(self._f_delta_w.weight)
+
+        # TODO: What if a GDeepLayer contains another GDeepLayer: Then the complete regularization
+        # of the sub-layer must be weightes by _f_delta_w(i)
 
         # Add all other regularizations
-        for i in self._delta_w.get_active_layers():
+        for i in self._f_delta_w.get_active_layers():
             layer = self._get_layer(i)
-            f_reg = layer['f_reg']
+            f_reg = layer.regularization
             if f_reg is not None:
-                reg += self._delta_w(i) * f_reg()
+                reg += self._f_delta_w(i).view([]).item() * f_reg()
 
         return reg
 
@@ -158,3 +161,31 @@ class GDeepHLayer(GDeepLayerBase):
             return (lambda x0, x_prev: f_i(x0)), f_i_reg
         super().__init__(f_i_builder=horicontal_f_i_builder, *args, **kwargs)
 
+
+
+def get_f_i_builder(*layer_builders): # TODO: refactoring und testen
+    from ._utilities import * # TODO: raufschieben
+    def _f_i_builder(i, reg, add_params):
+        layers = []
+        for layer_builder in layer_builders:
+            if isinstance(layer_builder, tuple):
+                layer = layer_builder[0]()
+                layers.append({
+                    'layer': layer,
+                    'regularization': lambda: layer_builder[1](layer)
+                })
+            else:
+                layers.append({
+                    'layer': layer_builder(),
+                    'regularization': lambda: 0.
+                })
+        add_params(layer['layer'] for layer in layers)
+
+        def _f_i(x):
+            return fluent_compose(*[layer['layer'] for layer in layers])(x)
+
+        def _f_i_reg():
+            return reg * sum(layer['regularization']() for layer in layers)
+
+        return _f_i, f_i_reg
+    return _f_i_builder

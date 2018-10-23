@@ -38,4 +38,6 @@ nosetests.xml
 .venv
 .mypy_cache
 dist
+pyvenv.cfg
+share
 

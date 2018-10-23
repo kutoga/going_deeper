@@ -7,6 +7,8 @@ from torch.nn.parameter import Parameter
 import numpy as np
 
  # TODO: Refactor complete file
+# TODO: Test W-dependend stretch: plot tanh(max(0, -(x-w)/w^a)^2) from x=-1 to 12 with w=10, a=0.5
+# or: plot max(0, 1-exp((x-w)/w^a)) from x=-1 to 12 with w=10, a=0.5
 
 def integers_in_range(x_start, x_end, include_borders=True):
     x0 = int(np.ceil(x_start))
@@ -28,6 +30,10 @@ class DeltaWBaseModule(Module):
 
     def get_w(self):
         pass
+
+def w_dependend_stretch(delta_w, f_w):
+    delta_w.stretch = f_w(delta_w.weight)
+    return delta_w
 
 class DeltaW_E(DeltaWBaseModule):
     """
