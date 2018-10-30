@@ -13,6 +13,7 @@ import numpy as np
 
 import numbers
 
+from ._utilities import *
 from ._deltaw import DeltaW_E, DeltaWBaseModule
 
 def _get_object_fields_of_type(obj, cls) -> Iterable:
@@ -164,7 +165,6 @@ class GDeepHLayer(GDeepLayerBase):
 
 
 def get_f_i_builder(*layer_builders): # TODO: refactoring und testen
-    from ._utilities import * # TODO: raufschieben
     def _f_i_builder(i, reg, add_params):
         layers = []
         for layer_builder in layer_builders:

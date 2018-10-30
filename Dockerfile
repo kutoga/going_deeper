@@ -12,6 +12,6 @@ COPY requirements.txt .
 RUN python3.6 -mpip install -r requirements.txt
 
 COPY gdeep gdeep
-COPY test.py .
+COPY 00_test_linear.py .
 
-ENTRYPOINT ["python3.6", "./test.py"]
+ENTRYPOINT ["python3.6", "./00_test_linear.py"]
