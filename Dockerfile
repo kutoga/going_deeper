@@ -7,6 +7,7 @@ RUN apt-get update && \
     apt-get install -y python3.6 python3-pip
 
 WORKDIR /going_deeper
+RUN mkdir -p .tmp
 
 COPY requirements.txt .
 RUN python3.6 -mpip install -r requirements.txt

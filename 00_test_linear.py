@@ -21,7 +21,7 @@ delta_w_f = lambda: DeltaW_T(stretch=10)
 
 dataset_name = 'CIFAR10'
 
-w_regularization = 1e-9
+w_regularization = 1e-2
 f_regularization = 1e-2
 
 use_cuda = torch.cuda.is_available()
@@ -176,5 +176,9 @@ else:
     raise RuntimeError(f"Invalid dataset: {dataset_name}")
 
 # TODO: pass cuda setting somehow to the network / training
-tr = ModelTraining(TestCNN(), train_data=org_train_data, test_data=org_test_data, batch_size=64, seed=1729, history_file=f'.tmp/history.json')
+model = TestCNN()
+if use_cuda:
+    model.cuda()
+tr = ModelTraining(model, train_data=org_train_data, test_data=org_test_data, batch_size=64, seed=1729,
+    history_file=f'.tmp/history.json', plot_file='.tmp/plot.png', use_cuda=use_cuda)
 tr.train()
