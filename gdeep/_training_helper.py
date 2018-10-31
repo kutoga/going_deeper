@@ -1,4 +1,5 @@
 import torch
+from math import exp
 from torch.autograd import Variable
 from torch.utils.data.dataset import random_split
 from itertools import chain
@@ -54,6 +55,7 @@ class History:
 
     def epoch_finished(self):
         self._epoch += 1
+        self._batch = 0
         self.on_epoch_finished(self._epoch)
 
     def add_values(self, **values):
@@ -81,7 +83,7 @@ class History:
             x, y = zip(*self._get_values_per_epoch(key))
             plt.plot(x, y)
         plt.legend(keys)
-        plt.ylim(top=7, bottom=0)
+        #plt.ylim(top=7, bottom=0)
         plt.grid(True)
         plt.savefig(filepath)
         plt.clf()
@@ -104,11 +106,12 @@ class ModelTraining:
         self._train_validation_data = train_validation_data
         self._test_data = test_data
         self._optimizer = optimizer or optim.Adamax(filter(lambda p: p.requires_grad, self._model.parameters()))
+        self._optimizer = optimizer or optim.RMSprop(filter(lambda p: p.requires_grad, self._model.parameters()))
         self._batch_size = batch_size
         self._shuffle = shuffle
         self._history_file = history_file
         self._plot_file = plot_file
-        self._use_cuda = False
+        self._use_cuda = use_cuda
 
         self._dl_train = self._get_data_loader(self._train_data)
         self._dl_validation = self._get_data_loader(self._validation_data)
@@ -117,7 +120,10 @@ class ModelTraining:
 
         self._history.on_epoch_finished += self._save_history
         if self._plot_file is not None:
-            self._history.on_epoch_finished += lambda _: self._history.plot_epoch_values(self._plot_file)
+            def _plot(_):
+                self._history.plot_epoch_values(self._plot_file + "_loss.png", 'train_loss', 'train_valid_loss')
+                self._history.plot_epoch_values(self._plot_file + "_acc.png", 'train_acc', 'train_valid_acc')
+            self._history.on_epoch_finished += _plot
 
     def _save_history(self, epoch):
         if self._history_file is not None:
@@ -160,6 +166,11 @@ class ModelTraining:
 
             def relu(x):
                 return max([0., x])
+            def sig(x):
+                return 1 / (1 + exp(-x))
+            def s(x):
+                return sig(max(-100, x))
+                return 0 if x <= 0 else 1
 
             d = abs(last_train_loss - last_train_valid_loss) / (1e-7 + abs(last_train_loss))
 
@@ -170,14 +181,28 @@ class ModelTraining:
                 # "Playground" code
                 v = last_train_valid_loss
                 t = last_train_loss
+
                 if v <= 1.05 * t:
-                    delta_w_loss_weight = -100 / max(t/v, v/t)
+                    delta_w_loss_weight = -10 / (max(t/v, v/t) - 1 + 1e-8)
                 else:
                     delta_w_loss_weight = relu(t - v)
 
+                if v <= 1.05 * t:
+                    delta_w_loss_weight = -10 / (max(t/v, v/t) - 1 + 1e-8)
+                else:
+                    delta_w_loss_weight = relu(v - t)
+
+                delta_w_loss_weight = s(1.05 * t - v) * (-1) / (max(t/v, v/t) - 1 + 1e-8) + (1 - s(1.05 * t - v)) * relu(v - t)
+
+                #delta_w_loss_weight = relu(1.05 * t - v) * (-10 / (max(t/v, v/t) - 1 + 1e-8))
+                #delta_w_loss_weight += relu(v - t) * 5
+
             self._history.add_values(delta_w_loss_weight=delta_w_loss_weight)
 
-            loss = F.nll_loss(output, v_target) + Variable(torch.FloatTensor([delta_w_loss_weight]).view([])) * self._model.get_regularizations()
+            t_delta_w_loss_weight = torch.FloatTensor([delta_w_loss_weight]).view([])
+            if self._use_cuda:
+                t_delta_w_loss_weight = t_delta_w_loss_weight.cuda()
+            loss = F.nll_loss(output, v_target) + Variable(t_delta_w_loss_weight) * self._model.get_regularizations()
             acc = _compute_accuracy(output, v_target)
             return loss, acc
 
@@ -211,9 +236,13 @@ class ModelTraining:
 
         self._history.batch_finished()
 
+    def _evaluate(self, data_loader):
+        raise RuntimeError()
+
     def train_epoch(self):
         for batch_idx, (data, target) in enumerate(self._dl_wrap(self._dl_train)):
             self._train_batch(data, target)
+        #self.validate()
         self._history.epoch_finished()
 
     def train(self, epochs = None):
@@ -226,10 +255,10 @@ class ModelTraining:
                 self.train_epoch()
 
     def test(self):
-        pass
+        return self._evaluate(self._dl_test)
 
     def validate(self):
-        pass
+        return self._evaluate(self._dl_validation)
 
 def train_epoch(model, ):
     # Create a simple output and log some data (maybe even create graphs?)

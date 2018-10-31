@@ -1,0 +1,6 @@
+- Loss-Difference for computing the weight of the "delta-weights":
+  - Only use the difference of the first loss-term (e.g. BCE)
+- Validation loss selection
+  - Use the minimal loss according to the first loss term (without the delta weights)
+- How does pytorch initialize the weights (especially of the runtime added layers)?
+- Simplify the computation of the delta w weight: It should use smaller values

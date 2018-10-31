@@ -17,7 +17,7 @@ cuda = False
 # TODO: Make this shit working
 # delta_w_f = lambda *args, **kwargs: w_dependend_stretch(DeltaW_E(*args, **kwargs), lambda w: w^0.5)
 delta_w_f = DeltaW_E
-delta_w_f = lambda: DeltaW_T(stretch=10)
+delta_w_f = lambda: DeltaW_T(stretch=4)
 
 dataset_name = 'CIFAR10'
 
@@ -25,6 +25,7 @@ w_regularization = 1e-2
 f_regularization = 1e-2
 
 use_cuda = torch.cuda.is_available()
+print(f"USE_CUDA={use_cuda}")
 
 class TestCNN(GDeepModule):
     def __init__(self, cnn_l0_features = 8, cnn_l1_features = 16, deltaw_builder=DeltaW_T, **kwargs):
@@ -41,6 +42,7 @@ class TestCNN(GDeepModule):
             li_bn = torch.nn.BatchNorm2d(cnn_l0_features)
             li_act = torch.nn.ReLU()
 
+            #freeze_layer(li_bn)
             add_params(li_cnn, li_act, li_bn)
 
             if use_cuda:
@@ -73,6 +75,7 @@ class TestCNN(GDeepModule):
             li_bn = torch.nn.BatchNorm2d(cnn_l1_features)
             li_act = torch.nn.ReLU()
 
+            #freeze_layer(li_bn)
             add_params(li_cnn, li_act, li_bn)
 
             if use_cuda:
